@@ -1,90 +1,91 @@
 #include <WiFi.h>
 #include <ThingerESP32.h>
 
-// Configuración de red y Thinger.io
+// Wi-Fi y credenciales de Thinger.io
 #define WIFI_SSID   "ADONIS"
 #define WIFI_PASS   "johanny2020"
-#define USERNAME    "Adonis"
+#define USER_NAME   "Adonis"
 #define DEVICE_ID   "Esp32_A"
 #define DEVICE_CRED "kOBjk95BhW-sR@ao"
 
-ThingerESP32 thing(USERNAME, DEVICE_ID, DEVICE_CRED);
+ThingerESP32 thing(USER_NAME, DEVICE_ID, DEVICE_CRED);
 
-// Pines para LED monocromático y RGB
-const int MONO_LED = 12;
-const int RED_PIN  = 27;
-const int GREEN_PIN= 26;
-const int BLUE_PIN = 25;
+// Pines del LED monocromático y RGB
+const int LED_MONO = 12;
+const int LED_R = 27;
+const int LED_G = 26;
+const int LED_B = 25;
 
-// Estados de los LEDs
-bool monoOn = false;
-uint8_t redVal = 0, greenVal = 0, blueVal = 0;
+// Variables de estado
+bool estadoMono = false;
+uint8_t valorR = 0, valorG = 0, valorB = 0;
 
 void setup() {
   Serial.begin(115200);
   thing.add_wifi(WIFI_SSID, WIFI_PASS);
 
-  pinMode(MONO_LED, OUTPUT);
-  pinMode(RED_PIN, OUTPUT);
-  pinMode(GREEN_PIN, OUTPUT);
-  pinMode(BLUE_PIN, OUTPUT);
+  // Configurar pines como salida
+  pinMode(LED_MONO, OUTPUT);
+  pinMode(LED_R, OUTPUT);
+  pinMode(LED_G, OUTPUT);
+  pinMode(LED_B, OUTPUT);
 
   // Control LED monocromático
-  thing["LED_MONO"] << [](pson& value){
-    if(value.is_empty()) {
-      value = monoOn;
+  thing["LED_MONO"] << [](pson& data){
+    if (data.is_empty()) {
+      data = estadoMono;
     } else {
-      monoOn = (bool)value;
-      digitalWrite(MONO_LED, monoOn ? HIGH : LOW);
-      Serial.printf("Mono LED → %s\n", monoOn ? "ON" : "OFF");
+      estadoMono = (bool)data;
+      digitalWrite(LED_MONO, estadoMono ? HIGH : LOW);
+      Serial.printf("MONO: %s\n", estadoMono ? "ENCENDIDO" : "APAGADO");
     }
   };
 
-  // Control componente rojo del LED RGB
-  thing["LED_R"] << [](pson& value){
-    if(value.is_empty()) {
-      value = redVal;
+  // Control canal rojo
+  thing["LED_R"] << [](pson& data){
+    if (data.is_empty()) {
+      data = valorR;
     } else {
-      redVal = value;
-      analogWrite(RED_PIN, 255 - redVal);
-      Serial.printf("Red = %u\n", redVal);
+      valorR = data;
+      analogWrite(LED_R, 255 - valorR);
+      Serial.printf("Rojo = %u\n", valorR);
     }
   };
 
-  // Control componente verde del LED RGB
-  thing["LED_G"] << [](pson& value){
-    if(value.is_empty()) {
-      value = greenVal;
+  // Control canal verde
+  thing["LED_G"] << [](pson& data){
+    if (data.is_empty()) {
+      data = valorG;
     } else {
-      greenVal = value;
-      analogWrite(GREEN_PIN, 255 - greenVal);
-      Serial.printf("Green = %u\n", greenVal);
+      valorG = data;
+      analogWrite(LED_G, 255 - valorG);
+      Serial.printf("Verde = %u\n", valorG);
     }
   };
 
-  // Control componente azul del LED RGB
-  thing["LED_B"] << [](pson& value){
-    if(value.is_empty()) {
-      value = blueVal;
+  // Control canal azul
+  thing["LED_B"] << [](pson& data){
+    if (data.is_empty()) {
+      data = valorB;
     } else {
-      blueVal = value;
-      analogWrite(BLUE_PIN, 255 - blueVal);
-      Serial.printf("Blue = %u\n", blueVal);
+      valorB = data;
+      analogWrite(LED_B, 255 - valorB);
+      Serial.printf("Azul = %u\n", valorB);
     }
   };
 
   // Encendido/apagado total del LED RGB
-  thing["LED_ALL"] << [](pson& value){
-    if(!value.is_empty()) {
-      uint8_t intensity = value ? 255 : 0;
-      redVal = greenVal = blueVal = intensity;
+  thing["LED_ALL"] << [](pson& data){
+    if (!data.is_empty()) {
+      uint8_t nivel = data ? 255 : 0;
+      valorR = valorG = valorB = nivel;
 
-      analogWrite(RED_PIN, 255 - redVal);
-      analogWrite(GREEN_PIN, 255 - greenVal);
-      analogWrite(BLUE_PIN, 255 - blueVal);
+      analogWrite(LED_R, 255 - valorR);
+      analogWrite(LED_G, 255 - valorG);
+      analogWrite(LED_B, 255 - valorB);
 
-      Serial.printf("RGB All → %s\n", value ? "ON" : "OFF");
-      value = intensity;
+      Serial.printf("TODOS: %s\n", data ? "ON" : "OFF");
+      data = nivel;
     }
   };
 }
